@@ -49,33 +49,105 @@ bool pcf_npcf_am_policy_control_handle_create(pcf_ue_t *pcf_ue,
     PolicyAssociationRequest = message->PolicyAssociationRequest;
     if (!PolicyAssociationRequest) {
         ogs_error("[%s] No PolicyAssociationRequest", pcf_ue->supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "[%s] No PolicyAssociationRequest", pcf_ue->supi));
+                message, "[%s] No PolicyAssociationRequest", pcf_ue->supi,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!PolicyAssociationRequest->notification_uri) {
         ogs_error("[%s] No notificationUri", pcf_ue->supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No notificationUri", pcf_ue->supi));
+                message, "No notificationUri", pcf_ue->supi,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!PolicyAssociationRequest->supi) {
         ogs_error("[%s] No supi", pcf_ue->supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No supi", pcf_ue->supi));
+                message, "No supi", pcf_ue->supi,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!PolicyAssociationRequest->supp_feat) {
         ogs_error("[%s] No suppFeat", pcf_ue->supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "No suppFeat", pcf_ue->supi));
+                message, "No suppFeat", pcf_ue->supi,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
@@ -84,9 +156,27 @@ bool pcf_npcf_am_policy_control_handle_create(pcf_ue_t *pcf_ue,
     if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
         ogs_error("[%s] Invalid URI [%s]",
                 pcf_ue->supi, PolicyAssociationRequest->notification_uri);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_QUERY_PARAM_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory query parameter, or a conditional
+         * query parameter but mandatory required, for an HTTP method
+         * was received in the URI with semantically incorrect value.
+         * (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                message, "[%s] Invalid URI", pcf_ue->supi));
+                message, "[%s] Invalid URI", pcf_ue->supi,
+                "MANDATORY_QUERY_PARAM_INCORRECT"));
         return false;
     }
 
@@ -546,8 +636,21 @@ cleanup:
     ogs_assert(status);
     ogs_assert(strerror);
     ogs_error("%s", strerror);
+    /*
+     * TS29.512
+     * 4.2.2.2 SM Policy Association establishment 
+     *
+     * If the PCF is, due to incomplete, erroneous or missing
+     * information (e.g. QoS, RAT type, subscriber information)
+     * not able to provision a policy decision as response to
+     * the request for PCC rules by the SMF, the PCF may reject
+     * the request and include in an HTTP "400 Bad Request"
+     * response message the "cause" attribute of the ProblemDetails
+     * data structure set to "ERROR_INITIAL_PARAMETERS". 
+     */
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, message, strerror, NULL));
+            ogs_sbi_server_send_error(stream, status, message,
+                    strerror, NULL, "ERROR_INITIAL_PARAMETERS"));
     ogs_free(strerror);
 
     return false;
@@ -604,8 +707,26 @@ cleanup:
     ogs_assert(status);
     ogs_assert(strerror);
     ogs_error("%s", strerror);
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: MANDATORY_IE_MISSING
+     * HTTP status code: 400 Bad Request
+     * Description: A mandatory IE (within the JSON body or within
+     * the variable part of an "apiSpecificResourceUriPart" or within
+     * an HTTP header), or conditional IE but mandatory required,
+     * for an HTTP method is not included in the request. (NOTE 1)
+     */
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, message, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, message, strerror, NULL,
+                "MANDATORY_IE_MISSING"));
     ogs_free(strerror);
 
     return false;
@@ -1070,8 +1191,50 @@ cleanup:
     ogs_assert(status);
     ogs_assert(strerror);
     ogs_error("%s", strerror);
-    ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+    if (status == OGS_SBI_HTTP_STATUS_BAD_REQUEST)
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                    "MANDATORY_IE_MISSING"));
+    else if (status == OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR)
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: SYSTEM_FAILURE
+         * HTTP status code: 500 Internal Server Error
+         * Description: The request is rejected due to generic error
+         * condition in the NF.
+         */
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                    "SYSTEM_FAILURE"));
+    else
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                    NULL));
     ogs_free(strerror);
 
     OpenAPI_list_for_each(PccRuleList, node) {
@@ -1483,7 +1646,8 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, recvmsg, strerror,
+                NULL, NULL));
     ogs_free(strerror);
 
     OpenAPI_list_for_each(PccRuleList, node) {

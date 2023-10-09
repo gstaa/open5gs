@@ -144,10 +144,26 @@ int udm_ue_sbi_discover_and_send(
                 (ogs_sbi_build_f)build, udm_ue, stream, data);
     if (r != OGS_OK) {
         ogs_error("udm_ue_sbi_discover_and_send() failed");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: TARGET_NF_NOT_REACHABLE
+         * HTTP status code: 504 Gateway Timeout
+         * Description: The request is not served as the target NF is
+         * not reachable. (NOTE 6)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                "Cannot discover", udm_ue->suci));
+                "Cannot discover", udm_ue->suci,
+                "TARGET_NF_NOT_REACHABLE"));
         return r;
     }
 
@@ -167,10 +183,25 @@ int udm_sess_sbi_discover_and_send(
                 (ogs_sbi_build_f)build, sess, stream, data);
     if (r != OGS_OK) {
         ogs_error("udm_sess_sbi_discover_and_send() failed");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: TARGET_NF_NOT_REACHABLE
+         * HTTP status code: 504 Gateway Timeout
+         * Description: The request is not served as the target NF is
+         * not reachable. (NOTE 6)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                "Cannot discover", NULL));
+                "Cannot discover", NULL, "TARGET_NF_NOT_REACHABLE"));
         return r;
     }
 

@@ -442,10 +442,25 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         if (rv != OGS_OK) {
             /* 'sbi_message' buffer is released in ogs_sbi_parse_request() */
             ogs_error("cannot parse HTTP sbi_message");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: INVALID_MSG_FORMAT
+             * HTTP status code: 400 Bad Request
+             * Description: The HTTP request has an invalid format. 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    NULL, "cannot parse HTTP sbi_message", NULL));
+                    NULL, "cannot parse HTTP sbi_message", NULL,
+                    "INVALID_MSG_FORMAT"));
             break;
         }
 
@@ -460,10 +475,26 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_assert(api_version);
         if (strcmp(sbi_message.h.api.version, api_version) != 0) {
             ogs_error("Not supported version [%s]", sbi_message.h.api.version);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: INVALID_API
+             * HTTP status code: 400 Bad Request
+             * Description: The HTTP request contains an unsupported API
+             * name or API version in the URI. 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    &sbi_message, "Not supported version", NULL));
+                    &sbi_message, "Not supported version", NULL,
+                    "INVALID_API"));
             ogs_sbi_message_free(&sbi_message);
             break;
         }
@@ -482,19 +513,39 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                     ogs_error("Invalid HTTP method [%s]", sbi_message.h.method);
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
-                            OGS_SBI_HTTP_STATUS_FORBIDDEN, &sbi_message,
-                            "Invalid HTTP method", sbi_message.h.method));
+                            OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, &sbi_message,
+                            "Invalid HTTP method", sbi_message.h.method,
+                            NULL));
                 END
                 break;
 
             DEFAULT
                 ogs_error("Invalid resource name [%s]",
                         sbi_message.h.resource.component[0]);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[0]));
+                        sbi_message.h.resource.component[0],
+                        "MANDATORY_IE_INCORRECT"));
             END
             break;
 
@@ -546,10 +597,26 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
                 DEFAULT
                     ogs_error("Invalid HTTP method [%s]", sbi_message.h.method);
+                    /*
+                     * TS29.500
+                     * 5.2.7.2 NF as HTTP Server
+                     *
+                     * Protocol and application errors common to several 5GC SBI API
+                     * specifications for which the NF shall include in the HTTP
+                     * response a payload body ("ProblemDetails" data structure or
+                     * application specific error data structure) with the "cause"
+                     * attribute indicating corresponding error are listed in table
+                     * 5.2.7.2-1.
+                     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                     * HTTP status code: 400 Bad Request
+                     * Description: The request is rejected due to unspecified
+                     * client error. (NOTE 2) 
+                     */
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
-                            "Invalid HTTP method", sbi_message.h.method));
+                            "Invalid HTTP method", sbi_message.h.method,
+                            "UNSPECIFIED_MSG_FAILURE"));
                     break;
                 END
 
@@ -567,11 +634,30 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             DEFAULT
                 ogs_error("Invalid resource name [%s]",
                         sbi_message.h.resource.component[0]);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[0]));
+                        sbi_message.h.resource.component[0],
+                        "MANDATORY_IE_INCORRECT"));
             END
             break;
 
@@ -585,11 +671,27 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 if (!sbi_message.h.resource.component[1]) {
                     ogs_error("No smContextRef [%s]",
                             sbi_message.h.resource.component[1]);
+                    /*
+                     * TS29.500
+                     * 5.2.7.2 NF as HTTP Server
+                     *
+                     * Protocol and application errors common to several 5GC SBI API
+                     * specifications for which the NF shall include in the HTTP
+                     * response a payload body ("ProblemDetails" data structure or
+                     * application specific error data structure) with the "cause"
+                     * attribute indicating corresponding error are listed in table
+                     * 5.2.7.2-1.
+                     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                     * HTTP status code: 400 Bad Request
+                     * Description: The request is rejected due to unspecified
+                     * client error. (NOTE 2) 
+                     */
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                             "No smContextRef",
-                            sbi_message.h.resource.component[1]));
+                            sbi_message.h.resource.component[1],
+                            "UNSPECIFIED_MSG_FAILURE"));
                     break;
                 }
 
@@ -598,11 +700,29 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
                 if (!sess) {
                     ogs_warn("Not found [%s]", sbi_message.h.uri);
+                    /*
+                     * TS29.500
+                     * 5.2.7.2 NF as HTTP Server
+                     *
+                     * Protocol and application errors common to several 5GC SBI API
+                     * specifications for which the NF shall include in the HTTP
+                     * response a payload body ("ProblemDetails" data structure or
+                     * application specific error data structure) with the "cause"
+                     * attribute indicating corresponding error are listed in table
+                     * 5.2.7.2-1.
+                     * Protocol or application Error:RESOURCE_URI_STRUCTURE_NOT_FOUND
+                     * HTTP status code: 404 Not Found
+                     * Description: The request is rejected because a fixed part
+                     * after the first variable part of an
+                     * "apiSpecificResourceUriPart" (as defined in clause 4.4.1 of
+                     * TS 29.501) is not found in the NF. 
+                     */
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_NOT_FOUND, &sbi_message,
                             "Not found",
-                            sbi_message.h.resource.component[1]));
+                            sbi_message.h.resource.component[1],
+                            "RESOURCE_URI_STRUCTURE_NOT_FOUND"));
                     break;
                 }
 
@@ -618,30 +738,84 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 DEFAULT
                     ogs_error("Invalid resource name [%s]",
                             sbi_message.h.resource.component[0]);
+                    /*
+                     * TS29.500
+                     * 5.2.7.2 NF as HTTP Server
+                     *
+                     * Protocol and application errors common to several 5GC SBI API
+                     * specifications for which the NF shall include in the HTTP
+                     * response a payload body ("ProblemDetails" data structure or
+                     * application specific error data structure) with the "cause"
+                     * attribute indicating corresponding error are listed in table
+                     * 5.2.7.2-1.
+                     * Protocol or application Error: MANDATORY_IE_INCORRECT
+                     * HTTP status code: 400 Bad Request
+                     * Description: A mandatory IE (within the JSON body or within
+                     * a variable part of an "apiSpecificResourceUriPart" or within
+                     * an HTTP header), or conditional IE but mandatory required,
+                     * for an HTTP method was received with a semantically incorrect
+                     * value. (NOTE 1) 
+                     */
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                             "Invalid resource name",
-                            sbi_message.h.resource.component[0]));
+                            sbi_message.h.resource.component[0],
+                            "MANDATORY_IE_INCORRECT"));
                 END
                 break;
             DEFAULT
                 ogs_error("Invalid resource name [%s]",
                         sbi_message.h.resource.component[0]);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
                         "Invalid resource name",
-                        sbi_message.h.resource.component[0]));
+                        sbi_message.h.resource.component[0],
+                        "MANDATORY_IE_INCORRECT"));
             END
             break;
 
         DEFAULT
             ogs_error("Invalid API name [%s]", sbi_message.h.service.name);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: INVALID_API
+             * HTTP status code: 400 Bad Request
+             * Description: The HTTP request contains an unsupported API
+             * name or API version in the URI. 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
-                    "Invalid API name", sbi_message.h.service.name));
+                    "Invalid API name", sbi_message.h.service.name,
+                    "INVALID_API"));
         END
 
         /* In lib/sbi/server.c, notify_completed() releases 'request' buffer. */
@@ -865,10 +1039,25 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
                 ogs_error("%s", strerror);
                 if (stream)
+                    /*
+                     * TS29.500
+                     * 5.2.7.2 NF as HTTP Server
+                     *
+                     * Protocol and application errors common to several 5GC SBI API
+                     * specifications for which the NF shall include in the HTTP
+                     * response a payload body ("ProblemDetails" data structure or
+                     * application specific error data structure) with the "cause"
+                     * attribute indicating corresponding error are listed in table
+                     * 5.2.7.2-1.
+                     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                     * HTTP status code: 400 Bad Request
+                     * Description: The request is rejected due to unspecified
+                     * client error. (NOTE 2) 
+                     */
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
                             OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                            NULL, strerror, NULL));
+                            NULL, strerror, NULL, "UNSPECIFIED_MSG_FAILURE"));
                 ogs_free(strerror);
                 break;
             }
@@ -989,10 +1178,26 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
             ogs_error("Cannot receive SBI message");
             if (stream) {
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: TIMED_OUT_REQUEST
+                 * HTTP status code: 504 Gateway Timeout
+                 * Description: The request is rejected due a request that has
+                 * timed out at the HTTP client (see clause 6.11.2). 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                        "Cannot receive SBI message", NULL));
+                        "Cannot receive SBI message", NULL,
+                        "TIMED_OUT_REQUEST"));
             }
             break;
 

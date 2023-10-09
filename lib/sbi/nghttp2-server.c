@@ -1171,10 +1171,25 @@ static int on_frame_recv(nghttp2_session *session,
 
             if (server->cb(request, stream) != OGS_OK) {
                 ogs_warn("server callback error");
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: SYSTEM_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to generic error
+                 * condition in the NF.
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                        "server callback error", NULL));
+                        "server callback error", NULL, "SYSTEM_FAILURE"));
 
                 return 0;
             }

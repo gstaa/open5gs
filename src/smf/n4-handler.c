@@ -703,9 +703,91 @@ int smf_5gc_n4_handle_session_deletion_response(
                 stream, status, strerror, NULL);
         } else if (trigger == OGS_PFCP_DELETE_TRIGGER_AMF_RELEASE_SM_CONTEXT) {
             ogs_assert(stream);
-            ogs_assert(true ==
-                ogs_sbi_server_send_error(
-                    stream, status, NULL, strerror, NULL));
+            if (status == OGS_SBI_HTTP_STATUS_BAD_REQUEST)
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                 * HTTP status code: 400 Bad Request
+                 * Description: The request is rejected due to unspecified
+                 * client error. (NOTE 2) 
+                 */
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(
+                        stream, status, NULL, strerror, NULL,
+                        "UNSPECIFIED_MSG_FAILURE"));
+            else if (status == OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT)
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: TIMED_OUT_REQUEST
+                 * HTTP status code: 504 Gateway Timeout
+                 * Description: The request is rejected due a request that has
+                 * timed out at the HTTP client (see clause 6.11.2). 
+                 */
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(
+                        stream, status, NULL, strerror, NULL,
+                        "TIMED_OUT_REQUEST"));
+            else if (status == OGS_SBI_HTTP_STATUS_SERVICE_UNAVAILABLE)
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: NF_CONGESTION
+                 * HTTP status code: 503 Service Unavailable
+                 * Description: The NF instance experiences congestion and
+                 * performs overload control, which does not allow the request
+                 * to be processed. (NOTE 4) (NOTE 7) 
+                 */
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(
+                        stream, status, NULL, strerror, NULL,
+                        "NF_CONGESTION"));
+            else if (status == OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR)
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_NF_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to unspecified
+                 * reason at the NF. (NOTE 3)
+                 */
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(
+                        stream, status, NULL, strerror, NULL,
+                        "UNSPECIFIED_NF_FAILURE"));
+            else
+                ogs_assert(true ==
+                    ogs_sbi_server_send_error(
+                        stream, status, NULL, strerror, NULL, NULL));
         } else if (trigger == OGS_PFCP_DELETE_TRIGGER_PCF_INITIATED) {
             /* No stream - Nothing */
         } else {

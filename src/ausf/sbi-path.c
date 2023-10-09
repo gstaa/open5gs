@@ -93,10 +93,26 @@ int ausf_sbi_discover_and_send(
             (ogs_sbi_build_f)build, ausf_ue, data);
     if (!xact) {
         ogs_error("ausf_sbi_discover_and_send() failed");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: TARGET_NF_NOT_REACHABLE
+         * HTTP status code: 504 Gateway Timeout
+         * Description: The request is not served as the target NF is
+         * not reachable. (NOTE 6)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                "Cannot discover", ausf_ue->suci));
+                "Cannot discover", ausf_ue->suci,
+                "TARGET_NF_NOT_REACHABLE"));
         return OGS_ERROR;
     }
 
@@ -106,10 +122,26 @@ int ausf_sbi_discover_and_send(
     if (r != OGS_OK) {
         ogs_error("ausf_sbi_discover_and_send() failed");
         ogs_sbi_xact_remove(xact);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: TIMED_OUT_REQUEST
+         * HTTP status code: 504 Gateway Timeout
+         * Description: The request is rejected due a request that has
+         * timed out at the HTTP client (see clause 6.11.2). 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_GATEWAY_TIMEOUT, NULL,
-                "Cannot discover", ausf_ue->suci));
+                "Cannot discover", ausf_ue->suci,
+                "TIMED_OUT_REQUEST"));
         return r;
     }
     

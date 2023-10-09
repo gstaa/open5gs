@@ -88,7 +88,8 @@ bool udm_nudr_dr_handle_subscription_authentication(
                     ogs_error("%s", strerror);
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
-                        stream, recvmsg->res_status, recvmsg, strerror, NULL));
+                        stream, recvmsg->res_status, recvmsg, strerror, NULL,
+                        recvmsg->ProblemDetails->cause));
                 ogs_free(strerror);
                 return false;
             }
@@ -96,11 +97,26 @@ bool udm_nudr_dr_handle_subscription_authentication(
             AuthenticationSubscription = recvmsg->AuthenticationSubscription;
             if (!AuthenticationSubscription) {
                 ogs_error("[%s] No AuthenticationSubscription", udm_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_NF_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to unspecified
+                 * reason at the NF. (NOTE 3)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
                         recvmsg, "No AuthenticationSubscription",
-                        udm_ue->suci));
+                        udm_ue->suci, "UNSPECIFIED_NF_FAILURE"));
                 return false;
             }
 
@@ -111,51 +127,132 @@ bool udm_nudr_dr_handle_subscription_authentication(
                         AuthenticationSubscription->authentication_method);
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
-                        OGS_SBI_HTTP_STATUS_FORBIDDEN,
-                        recvmsg, "Not supported Auth Method", udm_ue->suci));
+                        OGS_SBI_HTTP_STATUS_NOT_IMPLEMENTED,
+                        recvmsg, "Not supported Auth Method", udm_ue->suci,
+                        NULL));
                 return false;
 
             }
 
             if (!AuthenticationSubscription->enc_permanent_key) {
                 ogs_error("[%s] No encPermanentKey", udm_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: SYSTEM_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to generic error
+                 * condition in the NF.
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                        recvmsg, "No encPermanentKey", udm_ue->suci));
+                        recvmsg, "No encPermanentKey", udm_ue->suci,
+                        "SYSTEM_FAILURE"));
                 return false;
             }
             if (!AuthenticationSubscription->enc_opc_key) {
                 ogs_error("[%s] No encPermanentKey", udm_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: SYSTEM_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to generic error
+                 * condition in the NF.
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "No encPermanentKey", udm_ue->suci));
+                    recvmsg, "No encPermanentKey", udm_ue->suci,
+                    "SYSTEM_FAILURE"));
                 return false;
             }
             if (!AuthenticationSubscription->authentication_management_field) {
                 ogs_error("[%s] No authenticationManagementField",
                         udm_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: SYSTEM_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to generic error
+                 * condition in the NF.
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "No authenticationManagementField", udm_ue->suci));
+                    recvmsg, "No authenticationManagementField", udm_ue->suci,
+                    "SYSTEM_FAILURE"));
             return false;
         }
         if (!AuthenticationSubscription->sequence_number) {
             ogs_error("[%s] No SequenceNumber", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: SYSTEM_FAILURE
+             * HTTP status code: 500 Internal Server Error
+             * Description: The request is rejected due to generic error
+             * condition in the NF.
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "No SequenceNumber", udm_ue->suci));
+                    recvmsg, "No SequenceNumber", udm_ue->suci,
+                    "SYSTEM_FAILURE"));
                 return false;
             }
             if (!AuthenticationSubscription->sequence_number->sqn) {
                 ogs_error("[%s] No SequenceNumber.sqn", udm_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: SYSTEM_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to generic error
+                 * condition in the NF.
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "No SequenceNumber.sqn", udm_ue->suci));
+                    recvmsg, "No SequenceNumber.sqn", udm_ue->suci,
+                    "SYSTEM_FAILURE"));
                 return false;
             }
 
@@ -189,7 +286,8 @@ bool udm_nudr_dr_handle_subscription_authentication(
                 ogs_error("%s", strerror);
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
-                        stream, recvmsg->res_status, recvmsg, strerror, NULL));
+                        stream, recvmsg->res_status, recvmsg, strerror, NULL,
+                        recvmsg->ProblemDetails->cause));
                 ogs_free(strerror);
                 return false;
             }
@@ -260,8 +358,8 @@ bool udm_nudr_dr_handle_subscription_authentication(
             ogs_error("Invalid HTTP method [%s]", recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_FORBIDDEN, recvmsg,
-                    "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, recvmsg,
+                    "Invalid HTTP method", recvmsg->h.method, NULL));
             return false;
         END
         break;
@@ -277,7 +375,8 @@ bool udm_nudr_dr_handle_subscription_authentication(
             ogs_error("%s", strerror);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
-                    stream, recvmsg->res_status, recvmsg, strerror, NULL));
+                    stream, recvmsg->res_status, recvmsg, strerror, NULL,
+                    recvmsg->ProblemDetails->cause));
             ogs_free(strerror);
             return false;
         }
@@ -285,55 +384,168 @@ bool udm_nudr_dr_handle_subscription_authentication(
         AuthEvent = udm_ue->auth_event;
         if (!AuthEvent) {
             ogs_error("[%s] No AuthEvent", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_MISSING
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * the variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method is not included in the request. (NOTE 1)
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No AuthEvent", udm_ue->suci));
+                    recvmsg, "No AuthEvent", udm_ue->suci,
+                    "MANDATORY_IE_MISSING"));
             return false;
         }
 
         if (!AuthEvent->nf_instance_id) {
             ogs_error("[%s] No nfInstanceId", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No nfInstanceId", udm_ue->suci));
+                    recvmsg, "No nfInstanceId", udm_ue->suci,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!AuthEvent->success) {
             ogs_error("[%s] No success", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No success", udm_ue->suci));
+                    recvmsg, "No success", udm_ue->suci,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!AuthEvent->time_stamp) {
             ogs_error("[%s] No timeStamp", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No timeStamp", udm_ue->suci));
+                    recvmsg, "No timeStamp", udm_ue->suci,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!AuthEvent->auth_type) {
             ogs_error("[%s] No authType", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No authType", udm_ue->suci));
+                    recvmsg, "No authType", udm_ue->suci,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!AuthEvent->serving_network_name) {
             ogs_error("[%s] No servingNetworkName", udm_ue->suci);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No servingNetworkName", udm_ue->suci));
+                    recvmsg, "No servingNetworkName", udm_ue->suci,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
@@ -373,10 +585,28 @@ bool udm_nudr_dr_handle_subscription_authentication(
         ogs_assert(strerror);
 
         ogs_error("%s", strerror);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, strerror, NULL));
+                recvmsg, strerror, NULL, "MANDATORY_IE_INCORRECT"));
         ogs_free(strerror);
         return false;
     END
@@ -408,7 +638,8 @@ bool udm_nudr_dr_handle_subscription_context(
             udm_ue->supi, recvmsg->res_status);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, recvmsg->res_status,
-                NULL, "HTTP response error", udm_ue->supi));
+                NULL, "HTTP response error", udm_ue->supi,
+                recvmsg->ProblemDetails->cause));
         return false;
     }
 
@@ -430,10 +661,28 @@ bool udm_nudr_dr_handle_subscription_context(
             ogs_assert(strerror);
 
             ogs_error("%s", strerror);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, strerror, NULL));
+                    recvmsg, strerror, NULL, "MANDATORY_IE_INCORRECT"));
             ogs_free(strerror);
             return false;
         END
@@ -449,83 +698,253 @@ bool udm_nudr_dr_handle_subscription_context(
 
         if (!Amf3GppAccessRegistration) {
             ogs_error("[%s] No Amf3GppAccessRegistration", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_MISSING
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * the variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method is not included in the request. (NOTE 1)
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No Amf3GppAccessRegistration", udm_ue->supi));
+                    recvmsg, "No Amf3GppAccessRegistration", udm_ue->supi,
+                    "MANDATORY_IE_MISSING"));
             return false;
         }
 
         if (!Amf3GppAccessRegistration->amf_instance_id) {
             ogs_error("[%s] No amfInstanceId", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No amfInstanceId", udm_ue->supi));
+                    recvmsg, "No amfInstanceId", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Amf3GppAccessRegistration->dereg_callback_uri) {
             ogs_error("[%s] No dregCallbackUri", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No dregCallbackUri", udm_ue->supi));
+                    recvmsg, "No dregCallbackUri", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         Guami = Amf3GppAccessRegistration->guami;
         if (!Guami) {
             ogs_error("[%s] No Guami", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No Guami", udm_ue->supi));
+                    recvmsg, "No Guami", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Guami->amf_id) {
             ogs_error("[%s] No Guami.AmfId", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No Guami.AmfId", udm_ue->supi));
+                    recvmsg, "No Guami.AmfId", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Guami->plmn_id) {
             ogs_error("[%s] No PlmnId", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No PlmnId", udm_ue->supi));
+                    recvmsg, "No PlmnId", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Guami->plmn_id->mnc) {
             ogs_error("[%s] No PlmnId.Mnc", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No PlmnId.Mnc", udm_ue->supi));
+                    recvmsg, "No PlmnId.Mnc", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Guami->plmn_id->mcc) {
             ogs_error("[%s] No PlmnId.Mcc", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No PlmnId.Mcc", udm_ue->supi));
+                    recvmsg, "No PlmnId.Mcc", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
         if (!Amf3GppAccessRegistration->rat_type) {
             ogs_error("[%s] No RatType", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No RatType", udm_ue->supi));
+                    recvmsg, "No RatType", udm_ue->supi,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
@@ -581,10 +1000,28 @@ bool udm_nudr_dr_handle_subscription_context(
         ogs_assert(strerror);
 
         ogs_error("%s", strerror);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, strerror, NULL));
+                recvmsg, strerror, NULL, "MANDATORY_IE_INCORRECT"));
         ogs_free(strerror);
         return false;
     END
@@ -618,11 +1055,28 @@ bool udm_nudr_dr_handle_subscription_provisioned(
         if (!AccessAndMobilitySubscriptionData) {
             ogs_error("[%s] No AccessAndMobilitySubscriptionData",
                     udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_MISSING
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * the variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method is not included in the request. (NOTE 1)
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "No AccessAndMobilitySubscriptionData",
-                    udm_ue->supi));
+                    udm_ue->supi, "MANDATORY_IE_MISSING"));
             return false;
         }
 
@@ -647,11 +1101,28 @@ bool udm_nudr_dr_handle_subscription_provisioned(
         SmfSelectionSubscriptionData = recvmsg->SmfSelectionSubscriptionData;
         if (!SmfSelectionSubscriptionData) {
             ogs_error("[%s] No SmfSelectionSubscriptionData", udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_MISSING
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * the variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method is not included in the request. (NOTE 1)
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "No SmfSelectionSubscriptionData",
-                    udm_ue->supi));
+                    udm_ue->supi, "MANDATORY_IE_MISSING"));
             return false;
         }
 
@@ -680,11 +1151,28 @@ bool udm_nudr_dr_handle_subscription_provisioned(
             (recvmsg->SessionManagementSubscriptionDataList->count == 0)) {
             ogs_error("[%s] No SessionManagementSubscriptionData",
                     udm_ue->supi);
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_MISSING
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * the variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method is not included in the request. (NOTE 1)
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                     recvmsg, "No SessionManagementSubscriptionData",
-                    udm_ue->supi));
+                    udm_ue->supi, "MANDATORY_IE_MISSING"));
             return false;
         }
 
@@ -720,10 +1208,28 @@ bool udm_nudr_dr_handle_subscription_provisioned(
         ogs_assert(strerror);
 
         ogs_error("%s", strerror);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, strerror, NULL));
+                recvmsg, strerror, NULL, "MANDATORY_IE_INCORRECT"));
         ogs_free(strerror);
         return false;
     END
@@ -759,7 +1265,8 @@ bool udm_nudr_dr_handle_smf_registration(
             udm_ue->supi, sess->psi, recvmsg->res_status);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, recvmsg->res_status,
-                NULL, "HTTP response error", udm_ue->supi));
+                NULL, "HTTP response error", udm_ue->supi,
+                recvmsg->ProblemDetails->cause));
         return false;
     }
 
@@ -773,47 +1280,141 @@ bool udm_nudr_dr_handle_smf_registration(
 
             if (!SmfRegistration) {
                 ogs_error("[%s:%d] No SmfRegistration", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No SmfRegistration", udm_ue->supi));
+                        recvmsg, "No SmfRegistration", udm_ue->supi,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
             if (!SmfRegistration->smf_instance_id) {
                 ogs_error("[%s:%d] No smfInstanceId", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No smfInstanceId", udm_ue->supi));
+                        recvmsg, "No smfInstanceId", udm_ue->supi,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
             if (!SmfRegistration->pdu_session_id) {
                 ogs_error("[%s:%d] No pduSessionId", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No pduSessionId", udm_ue->supi));
+                        recvmsg, "No pduSessionId", udm_ue->supi,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
             if (!SmfRegistration->single_nssai ||
                     !SmfRegistration->single_nssai->sst) {
                 ogs_error("[%s:%d] No singleNssai", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No singleNssai", udm_ue->supi));
+                        recvmsg, "No singleNssai", udm_ue->supi,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
             if (!SmfRegistration->dnn) {
                 ogs_error("[%s:%d] No dnn", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No dnn", udm_ue->supi));
+                        recvmsg, "No dnn", udm_ue->supi,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
@@ -821,10 +1422,29 @@ bool udm_nudr_dr_handle_smf_registration(
                     !SmfRegistration->plmn_id->mcc ||
                     !SmfRegistration->plmn_id->mnc) {
                 ogs_error("[%s:%d] No plmnId", udm_ue->supi, sess->psi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No plmnId", udm_ue->supi));
+                        recvmsg, "No plmnId", udm_ue->supi,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
@@ -881,8 +1501,8 @@ bool udm_nudr_dr_handle_smf_registration(
                     udm_ue->suci, sess->psi, recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_FORBIDDEN, recvmsg,
-                    "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, recvmsg,
+                    "Invalid HTTP method", recvmsg->h.method, NULL));
         END
         break;
 
@@ -892,10 +1512,28 @@ bool udm_nudr_dr_handle_smf_registration(
         ogs_assert(strerror);
 
         ogs_error("%s", strerror);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, strerror, NULL));
+                recvmsg, strerror, NULL, "MANDATORY_IE_INCORRECT"));
         ogs_free(strerror);
         return false;
     END

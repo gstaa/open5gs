@@ -37,19 +37,56 @@ bool sepp_n32c_handshake_handle_security_capability_request(
     SecNegotiateReqData = recvmsg->SecNegotiateReqData;
     if (!SecNegotiateReqData) {
         ogs_error("[%s] No SecNegotiateReqData", sepp_node->receiver);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SecNegotiateReqData", sepp_node->receiver));
+                recvmsg, "No SecNegotiateReqData", sepp_node->receiver,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!SecNegotiateReqData->sender) {
         ogs_error("[%s] No SecNegotiateReqData.sender", sepp_node->receiver);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SecNegotiateReqData.sender", sepp_node->receiver));
+                recvmsg, "No SecNegotiateReqData.sender", sepp_node->receiver,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -62,11 +99,29 @@ bool sepp_n32c_handshake_handle_security_capability_request(
 
     if (!SecNegotiateReqData->supported_sec_capability_list) {
         ogs_error("[%s] No supported_sec_capability_list", sepp_node->receiver);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                 recvmsg, "No supported_sec_capability_list",
-                sepp_node->receiver));
+                sepp_node->receiver, "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -100,11 +155,26 @@ bool sepp_n32c_handshake_handle_security_capability_request(
             ogs_error("[%s] Unknown SupportedSecCapability [%d]",
                     sepp_node->receiver, security_capability);
         }
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+         * HTTP status code: 400 Bad Request
+         * Description: The request is rejected due to unspecified
+         * client error. (NOTE 2) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                 recvmsg, "Unknown SupportedSecCapability",
-                sepp_node->receiver));
+                sepp_node->receiver, "UNSPECIFIED_MSG_FAILURE"));
         return false;
     }
 

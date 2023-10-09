@@ -150,11 +150,27 @@ void sepp_handshake_state_will_establish(ogs_fsm_t *s, sepp_event_t *e)
 
                         ogs_error("[%s] PRINS is not supported",
                                 sepp_node->receiver);
+                        /*
+                         * TS29.500
+                         * 5.2.7.2 NF as HTTP Server
+                         *
+                         * Protocol and application errors common to several 5GC SBI API
+                         * specifications for which the NF shall include in the HTTP
+                         * response a payload body ("ProblemDetails" data structure or
+                         * application specific error data structure) with the "cause"
+                         * attribute indicating corresponding error are listed in table
+                         * 5.2.7.2-1.
+                         * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                         * HTTP status code: 400 Bad Request
+                         * Description: The request is rejected due to unspecified
+                         * client error. (NOTE 2) 
+                         */
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
                                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                                 message, "PRINS is not supported",
-                                sepp_node->receiver));
+                                sepp_node->receiver,
+                                "UNSPECIFIED_MSG_FAILURE"));
 
                     } else if (sepp_node->negotiated_security_scheme ==
                             OpenAPI_security_capability_NONE) {
@@ -337,11 +353,27 @@ void sepp_handshake_state_established(ogs_fsm_t *s, sepp_event_t *e)
 
                         ogs_error("[%s] PRINS is not supported",
                                 sepp_node->receiver);
+                        /*
+                         * TS29.500
+                         * 5.2.7.2 NF as HTTP Server
+                         *
+                         * Protocol and application errors common to several 5GC SBI API
+                         * specifications for which the NF shall include in the HTTP
+                         * response a payload body ("ProblemDetails" data structure or
+                         * application specific error data structure) with the "cause"
+                         * attribute indicating corresponding error are listed in table
+                         * 5.2.7.2-1.
+                         * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                         * HTTP status code: 400 Bad Request
+                         * Description: The request is rejected due to unspecified
+                         * client error. (NOTE 2) 
+                         */
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
                                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                                 message, "PRINS is not supported",
-                                sepp_node->receiver));
+                                sepp_node->receiver,
+                                "UNSPECIFIED_MSG_FAILURE"));
 
                     } else if (sepp_node->negotiated_security_scheme ==
                             OpenAPI_security_capability_NONE) {
@@ -479,11 +511,27 @@ void sepp_handshake_state_terminated(ogs_fsm_t *s, sepp_event_t *e)
 
                         ogs_error("[%s] PRINS is not supported",
                                 sepp_node->receiver);
+                        /*
+                         * TS29.500
+                         * 5.2.7.2 NF as HTTP Server
+                         *
+                         * Protocol and application errors common to several 5GC SBI API
+                         * specifications for which the NF shall include in the HTTP
+                         * response a payload body ("ProblemDetails" data structure or
+                         * application specific error data structure) with the "cause"
+                         * attribute indicating corresponding error are listed in table
+                         * 5.2.7.2-1.
+                         * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+                         * HTTP status code: 400 Bad Request
+                         * Description: The request is rejected due to unspecified
+                         * client error. (NOTE 2) 
+                         */
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
                                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                                 message, "PRINS is not supported",
-                                sepp_node->receiver));
+                                sepp_node->receiver,
+                                "UNSPECIFIED_MSG_FAILURE"));
 
                     } else if (sepp_node->negotiated_security_scheme ==
                             OpenAPI_security_capability_NONE) {

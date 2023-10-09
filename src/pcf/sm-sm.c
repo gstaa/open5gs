@@ -96,8 +96,8 @@ void pcf_sm_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                             pcf_ue->supi, sess->psi, message->h.uri);
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
-                            OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                            "Invalid HTTP method", message->h.uri));
+                            OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, message,
+                            "Invalid HTTP method", message->h.uri, NULL));
                 END
             }
             break;
@@ -114,10 +114,29 @@ void pcf_sm_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                         ogs_error("[%s:%d] Invalid resource name [%s]",
                                 pcf_ue->supi, sess->psi,
                                 message->h.resource.component[2]);
+                        /*
+                         * TS29.500
+                         * 5.2.7.2 NF as HTTP Server
+                         *
+                         * Protocol and application errors common to several 5GC SBI API
+                         * specifications for which the NF shall include in the HTTP
+                         * response a payload body ("ProblemDetails" data structure or
+                         * application specific error data structure) with the "cause"
+                         * attribute indicating corresponding error are listed in table
+                         * 5.2.7.2-1.
+                         * Protocol or application Error: MANDATORY_IE_INCORRECT
+                         * HTTP status code: 400 Bad Request
+                         * Description: A mandatory IE (within the JSON body or within
+                         * a variable part of an "apiSpecificResourceUriPart" or within
+                         * an HTTP header), or conditional IE but mandatory required,
+                         * for an HTTP method was received with a semantically incorrect
+                         * value. (NOTE 1) 
+                         */
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
-                                OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                                "Invalid resource name", message->h.uri));
+                                OGS_SBI_HTTP_STATUS_BAD_REQUEST, message,
+                                "Invalid resource name", message->h.uri,
+                                "MANDATORY_IE_INCORRECT"));
                     END
                 } else {
                     SWITCH(message->h.method)
@@ -130,8 +149,9 @@ void pcf_sm_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                                 pcf_ue->supi, sess->psi, message->h.method);
                         ogs_assert(true ==
                             ogs_sbi_server_send_error(stream,
-                                OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                                "Invalid HTTP method", message->h.uri));
+                                OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, message,
+                                "Invalid HTTP method", message->h.uri,
+                                NULL));
                     END
                 }
             } else {
@@ -145,8 +165,8 @@ void pcf_sm_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                             pcf_ue->supi, sess->psi, message->h.method);
                     ogs_assert(true ==
                         ogs_sbi_server_send_error(stream,
-                            OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                            "Invalid HTTP method", message->h.uri));
+                            OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, message,
+                            "Invalid HTTP method", message->h.uri, NULL));
                 END
             }
             break;
@@ -176,14 +196,42 @@ void pcf_sm_state_operational(ogs_fsm_t *s, pcf_event_t *e)
                                 OGS_SBI_HTTP_STATUS_NOT_FOUND) {
                             ogs_warn("[%s:%d] Cannot find SUPI [%d]",
                                 pcf_ue->supi, sess->psi, message->res_status);
+                            /*
+                             * TS29.512
+                             * 4.2.2.2 SM Policy Association establishment
+                             *
+                             * If the user information received within the "supi"
+                             * attribute is unknown, the PCF shall reject the
+                             * request with an HTTP "400 Bad Request" response
+                             * message including the "cause" attribute of the
+                             * ProblemDetails data structure set to "USER_UNKNOWN".
+                             */
+                            ogs_assert(true ==
+                                ogs_sbi_server_send_error(
+                                    stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                                    NULL, "End user is unknown to the PCF",
+                                    pcf_ue->supi, "USER_UNKNOWN"));
                         } else {
                             ogs_error("[%s:%d] HTTP response error [%d]",
                                 pcf_ue->supi, sess->psi, message->res_status);
+                            /*
+                             * TS29.512
+                             * 4.2.2.2 SM Policy Association establishment
+                             *
+                             * If the PCF, based on local configuration and/or
+                             * operator policies, denies the creation of the
+                             * Individual SM Policy resource, the PCF may reject
+                             * the request and include in an HTTP "403 Forbidden"
+                             * response message the "cause" attribute of the
+                             * ProblemDetails data structure set to
+                             * "POLICY_CONTEXT_DENIED".
+                             */
+                            ogs_assert(true ==
+                                ogs_sbi_server_send_error(
+                                    stream, OGS_SBI_HTTP_STATUS_FORBIDDEN,
+                                    NULL, "HTTP response error",
+                                    pcf_ue->supi, "POLICY_CONTEXT_DENIED"));
                         }
-                        ogs_assert(true ==
-                            ogs_sbi_server_send_error(
-                                stream, message->res_status,
-                                NULL, "HTTP response error", pcf_ue->supi));
                         break;
                     }
 

@@ -625,10 +625,25 @@ static int response_handler(
                 status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
                 "response_handler() failed [%d]", status);
 
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: SYSTEM_FAILURE
+         * HTTP status code: 500 Internal Server Error
+         * Description: The request is rejected due to generic error
+         * condition in the NF.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                "response_handler() failed", NULL));
+                "response_handler() failed", NULL, "SYSTEM_FAILURE"));
 
         scp_assoc_remove(assoc);
 
@@ -694,10 +709,25 @@ static int nf_discover_handler(
                 status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
                 "nf_discover_handler() failed [%d]", status);
 
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: SYSTEM_FAILURE
+         * HTTP status code: 500 Internal Server Error
+         * Description: The request is rejected due to generic error
+         * condition in the NF.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                "nf_discover_handler() failed", NULL));
+                "nf_discover_handler() failed", NULL, "SYSTEM_FAILURE"));
 
         scp_assoc_remove(assoc);
         return OGS_ERROR;
@@ -782,9 +812,25 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
 
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+     * HTTP status code: 400 Bad Request
+     * Description: The request is rejected due to unspecified
+     * client error. (NOTE 2) 
+     */
     ogs_assert(true ==
         ogs_sbi_server_send_error(
-            stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST, NULL, strerror, NULL));
+            stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST, NULL, strerror, NULL,
+            "UNSPECIFIED_MSG_FAILURE"));
 
     ogs_free(strerror);
 
@@ -823,10 +869,25 @@ static int sepp_discover_handler(
                 status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
                 "sepp_discover_handler() failed [%d]", status);
 
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: SYSTEM_FAILURE
+         * HTTP status code: 500 Internal Server Error
+         * Description: The request is rejected due to generic error
+         * condition in the NF.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                "sepp_discover_handler() failed", NULL));
+                "sepp_discover_handler() failed", NULL, "SYSTEM_FAILURE"));
 
         scp_assoc_remove(assoc);
         return OGS_ERROR;
@@ -876,9 +937,25 @@ cleanup:
     ogs_assert(strerror);
     ogs_error("%s", strerror);
 
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+     * HTTP status code: 400 Bad Request
+     * Description: The request is rejected due to unspecified
+     * client error. (NOTE 2) 
+     */
     ogs_assert(true ==
         ogs_sbi_server_send_error(
-            stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST, NULL, strerror, NULL));
+            stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST, NULL, strerror, NULL,
+            "UNSPECIFIED_MSG_FAILURE"));
 
     ogs_free(strerror);
 

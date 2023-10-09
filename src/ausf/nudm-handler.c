@@ -60,10 +60,28 @@ bool ausf_nudm_ueau_handle_get(ausf_ue_t *ausf_ue,
     AuthenticationInfoResult = recvmsg->AuthenticationInfoResult;
     if (!AuthenticationInfoResult) {
         ogs_error("[%s] No AuthenticationInfoResult", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationInfoResult", ausf_ue->suci));
+                recvmsg, "No AuthenticationInfoResult", ausf_ue->suci,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
@@ -75,7 +93,8 @@ bool ausf_nudm_ueau_handle_get(ausf_ue_t *ausf_ue,
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_NOT_IMPLEMENTED,
-                recvmsg, "Not supported Auth Method", ausf_ue->suci));
+                recvmsg, "Not supported Auth Method", ausf_ue->suci,
+                NULL));
         return false;
     }
 
@@ -83,66 +102,195 @@ bool ausf_nudm_ueau_handle_get(ausf_ue_t *ausf_ue,
         AuthenticationInfoResult->authentication_vector;
     if (!AuthenticationVector) {
         ogs_error("[%s] No AuthenticationVector", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (AuthenticationVector->av_type != OpenAPI_av_type_5G_HE_AKA) {
         ogs_error("[%s] Not supported Auth Method [%d]",
             ausf_ue->suci, AuthenticationVector->av_type);
+        /*
+         * TS29.509
+         * 5.2.2.2.2 5G AKA 
+         *
+         * On failure or redirection, one of the HTTP status code
+         * listed in table 6.1.7.3-1 shall be returned with the message
+         * body containing a ProblemDetails structure with the "cause"
+         * attribute set to one of the application error listed in
+         * Table 6.1.7.3-1.
+         * Application Error: AUTHENTICATION_REJECTED
+         * HTTP status code: 403 Forbidden 
+         * Description: The user cannot be authenticated with this
+         * authentication method e.g. only SIM data available 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_FORBIDDEN,
-                recvmsg, "Not supported Auth Method", ausf_ue->suci));
+                recvmsg, "Not supported Auth Method", ausf_ue->suci,
+                "AUTHENTICATION_REJECTED"));
         return false;
     }
 
     if (!AuthenticationVector->rand) {
         ogs_error("[%s] No AuthenticationVector.rand", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector.rand", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector.rand", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!AuthenticationVector->xres_star) {
         ogs_error("[%s] No AuthenticationVector.xresStar",
                 ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector.xresStar", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector.xresStar", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!AuthenticationVector->autn) {
         ogs_error("[%s] No AuthenticationVector.autn", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector.autn", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector.autn", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!AuthenticationVector->kausf) {
         ogs_error("[%s] No AuthenticationVector.kausf", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector.kausf", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector.kausf", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!AuthenticationInfoResult->supi) {
         ogs_error("[%s] No AuthenticationVector.supi", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No AuthenticationVector.supi", ausf_ue->suci));
+                recvmsg, "No AuthenticationVector.supi", ausf_ue->suci,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -272,17 +420,53 @@ bool ausf_nudm_ueau_handle_result_confirmation_inform(ausf_ue_t *ausf_ue,
     AuthEvent = recvmsg->AuthEvent;
     if (!AuthEvent) {
         ogs_error("[%s] No AuthEvent", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No AuthEvent", ausf_ue->suci));
+                    recvmsg, "No AuthEvent", ausf_ue->suci,
+                    "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!recvmsg->http.location) {
         ogs_error("[%s] No Location", ausf_ue->suci);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No Location", ausf_ue->suci));
+                    recvmsg, "No Location", ausf_ue->suci,
+                    "MANDATORY_IE_MISSING"));
         return false;
     }
 

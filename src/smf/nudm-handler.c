@@ -371,9 +371,24 @@ cleanup:
     ogs_assert(strerror);
 
     ogs_error("%s", strerror);
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+     * HTTP status code: 400 Bad Request
+     * Description: The request is rejected due to unspecified
+     * client error. (NOTE 2) 
+     */
     ogs_assert(true ==
         ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-            recvmsg, strerror, NULL));
+            recvmsg, strerror, NULL, "UNSPECIFIED_MSG_FAILURE"));
     ogs_free(strerror);
 
     return false;

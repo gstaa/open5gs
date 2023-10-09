@@ -92,10 +92,28 @@ void ausf_ue_state_operational(ogs_fsm_t *s, ausf_event_t *e)
         CASE(OGS_SBI_HTTP_METHOD_PUT)
             if (!ausf_ue->supi) {
                 ogs_error("[%s] No SUPI", ausf_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        message, "[%s] No SUPI", ausf_ue->suci));
+                        message, "[%s] No SUPI", ausf_ue->suci,
+                        "MANDATORY_IE_MISSING"));
                 OGS_FSM_TRAN(s, ausf_ue_state_exception);
                 break;
             }
@@ -111,10 +129,28 @@ void ausf_ue_state_operational(ogs_fsm_t *s, ausf_event_t *e)
         CASE(OGS_SBI_HTTP_METHOD_DELETE)
             if (!ausf_ue->supi) {
                 ogs_error("[%s] No SUPI", ausf_ue->suci);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        message, "[%s] No SUPI", ausf_ue->suci));
+                        message, "[%s] No SUPI", ausf_ue->suci,
+                        "MANDATORY_IE_MISSING"));
                 OGS_FSM_TRAN(s, ausf_ue_state_exception);
                 break;
             }
@@ -132,8 +168,9 @@ void ausf_ue_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                     ausf_ue->suci, message->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_FORBIDDEN, message,
-                    "Invalid HTTP method", message->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED, message,
+                    "Invalid HTTP method", message->h.method,
+                    NULL));
         END
 
         break;
@@ -162,7 +199,8 @@ void ausf_ue_state_operational(ogs_fsm_t *s, ausf_event_t *e)
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, message->res_status,
-                        NULL, "HTTP response error", ausf_ue->suci));
+                        NULL, "HTTP response error", ausf_ue->suci,
+                        message->ProblemDetails->cause));
                 break;
             }
 

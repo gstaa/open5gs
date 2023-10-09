@@ -40,36 +40,110 @@ bool nrf_nnrf_handle_nf_register(ogs_sbi_nf_instance_t *nf_instance,
     NFProfile = recvmsg->NFProfile;
     if (!NFProfile) {
         ogs_error("No NFProfile");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No NFProfile", NULL));
+                recvmsg, "No NFProfile", NULL, "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!NFProfile->nf_instance_id) {
         ogs_error("No NFProfile.NFInstanceId");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No NFProfile.NFInstanceId", NULL));
+                recvmsg, "No NFProfile.NFInstanceId", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!NFProfile->nf_type) {
         ogs_error("No NFProfile.NFType");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No NFProfile.NFType", NULL));
+                recvmsg, "No NFProfile.NFType", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!NFProfile->nf_status) {
         ogs_error("No NFProfile.NFStatus");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No NFProfile.NFStatus", NULL));
+                recvmsg, "No NFProfile.NFStatus", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -217,10 +291,29 @@ bool nrf_nnrf_handle_nf_update(ogs_sbi_nf_instance_t *nf_instance,
         PatchItemList = recvmsg->PatchItemList;
         if (!PatchItemList) {
             ogs_error("No PatchItemList Array");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No PatchItemList", NULL));
+                    recvmsg, "No PatchItemList", NULL,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
@@ -228,10 +321,29 @@ bool nrf_nnrf_handle_nf_update(ogs_sbi_nf_instance_t *nf_instance,
             OpenAPI_patch_item_t *patch_item = node->data;
             if (!patch_item) {
                 ogs_error("No PatchItem");
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No PatchItem", NULL));
+                        recvmsg, "No PatchItem", NULL,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
@@ -293,28 +405,79 @@ bool nrf_nnrf_handle_nf_status_subscribe(
     if (recvmsg->h.resource.component[1]) {
         ogs_error("Invalid POST Format [%s]",
                 recvmsg->h.resource.component[1]);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: INVALID_MSG_FORMAT
+         * HTTP status code: 400 Bad Request
+         * Description: The HTTP request has an invalid format. 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
                 recvmsg, "Invalid POST Format",
-                recvmsg->h.resource.component[1]));
+                recvmsg->h.resource.component[1], "INVALID_MSG_FORMAT"));
         return false;
     }
 
     SubscriptionData = recvmsg->SubscriptionData;
     if (!SubscriptionData) {
         ogs_error("No SubscriptionData");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SubscriptionData", NULL));
+                recvmsg, "No SubscriptionData", NULL,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!SubscriptionData->nf_status_notification_uri) {
         ogs_error("No nfStatusNotificationUri");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SubscriptionData", "NFStatusNotificationURL"));
+                recvmsg, "No SubscriptionData", "NFStatusNotificationURL",
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -400,10 +563,29 @@ bool nrf_nnrf_handle_nf_status_subscribe(
     rc = ogs_sbi_getaddr_from_uri(&scheme, &fqdn, &fqdn_port, &addr, &addr6,
             subscription_data->notification_uri);
     if (rc == false || scheme == OpenAPI_uri_scheme_NULL) {
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "Invalid URI", subscription_data->notification_uri));
+                recvmsg, "Invalid URI", subscription_data->notification_uri,
+                "MANDATORY_IE_INCORRECT"));
         ogs_sbi_subscription_data_remove(subscription_data);
         return false;
     }
@@ -493,10 +675,29 @@ bool nrf_nnrf_handle_nf_status_update(
 
     if (!recvmsg->h.resource.component[1]) {
         ogs_error("No SubscriptionId");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SubscriptionId", NULL));
+                recvmsg, "No SubscriptionId", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -507,7 +708,8 @@ bool nrf_nnrf_handle_nf_status_update(
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                recvmsg, "Not found", recvmsg->h.resource.component[1]));
+                recvmsg, "Not found", recvmsg->h.resource.component[1],
+                NULL));
         return false;
     }
     ogs_assert(subscription_data->id);
@@ -515,10 +717,28 @@ bool nrf_nnrf_handle_nf_status_update(
     PatchItemList = recvmsg->PatchItemList;
     if (!PatchItemList) {
         ogs_error("[%s] No PatchItemList Array", subscription_data->id);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(
                 stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No PatchItemList", subscription_data->id));
+                recvmsg, "No PatchItemList", subscription_data->id,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
@@ -526,10 +746,29 @@ bool nrf_nnrf_handle_nf_status_update(
         OpenAPI_patch_item_t *patch_item = node->data;
         if (!patch_item) {
             ogs_error("No PatchItem");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: MANDATORY_IE_INCORRECT
+             * HTTP status code: 400 Bad Request
+             * Description: A mandatory IE (within the JSON body or within
+             * a variable part of an "apiSpecificResourceUriPart" or within
+             * an HTTP header), or conditional IE but mandatory required,
+             * for an HTTP method was received with a semantically incorrect
+             * value. (NOTE 1) 
+             */
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                    recvmsg, "No PatchItem", NULL));
+                    recvmsg, "No PatchItem", NULL,
+                    "MANDATORY_IE_INCORRECT"));
             return false;
         }
 
@@ -631,10 +870,29 @@ bool nrf_nnrf_handle_nf_status_unsubscribe(
 
     if (!recvmsg->h.resource.component[1]) {
         ogs_error("No SubscriptionId");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SubscriptionId", NULL));
+                recvmsg, "No SubscriptionId", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -645,7 +903,8 @@ bool nrf_nnrf_handle_nf_status_unsubscribe(
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                recvmsg, "Not found", recvmsg->h.resource.component[1]));
+                recvmsg, "Not found", recvmsg->h.resource.component[1],
+                NULL));
         return false;
     }
 
@@ -741,7 +1000,8 @@ bool nrf_nnrf_handle_nf_profile_retrieval(
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                recvmsg, "Not found", recvmsg->h.resource.component[1]));
+                recvmsg, "Not found", recvmsg->h.resource.component[1],
+                NULL));
         return false;
     }
 
@@ -781,16 +1041,54 @@ bool nrf_nnrf_handle_nf_discover(
 
     if (!recvmsg->param.target_nf_type) {
         ogs_error("No target-nf-type [%s]", recvmsg->h.uri);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No target-nf-type", NULL));
+                recvmsg, "No target-nf-type", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
     if (!recvmsg->param.requester_nf_type) {
         ogs_error("No requester-nf-type [%s]", recvmsg->h.uri);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No requester-nf-type", NULL));
+                recvmsg, "No requester-nf-type", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -995,9 +1293,25 @@ bool nrf_nnrf_handle_nf_discover(
         assoc = nrf_assoc_add(stream);
         if (!assoc) {
             ogs_error("nrf_assoc_add() failed");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: SYSTEM_FAILURE
+             * HTTP status code: 500 Internal Server Error
+             * Description: The request is rejected due to generic error
+             * condition in the NF.
+             */
             ogs_assert(true == ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "nrf_assoc_add() failed", NULL));
+                    recvmsg, "nrf_assoc_add() failed", NULL,
+                    "SYSTEM_FAILURE"));
             goto cleanup;
         }
 
@@ -1007,9 +1321,25 @@ bool nrf_nnrf_handle_nf_discover(
                     discovery_option);
         if (!request) {
             ogs_error("ogs_nnrf_disc_build_discover() failed");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: SYSTEM_FAILURE
+             * HTTP status code: 500 Internal Server Error
+             * Description: The request is rejected due to generic error
+             * condition in the NF.
+             */
             ogs_assert(true == ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "ogs_nnrf_disc_build_discover() failed", NULL));
+                    recvmsg, "ogs_nnrf_disc_build_discover() failed", NULL,
+                    "SYSTEM_FAILURE"));
             nrf_assoc_remove(assoc);
             goto cleanup;
         }
@@ -1018,9 +1348,25 @@ bool nrf_nnrf_handle_nf_discover(
                 client, discover_handler, request, assoc);
         if (rc == false) {
             ogs_error("ogs_sbi_send_request_to_client");
+            /*
+             * TS29.500
+             * 5.2.7.2 NF as HTTP Server
+             *
+             * Protocol and application errors common to several 5GC SBI API
+             * specifications for which the NF shall include in the HTTP
+             * response a payload body ("ProblemDetails" data structure or
+             * application specific error data structure) with the "cause"
+             * attribute indicating corresponding error are listed in table
+             * 5.2.7.2-1.
+             * Protocol or application Error: SYSTEM_FAILURE
+             * HTTP status code: 500 Internal Server Error
+             * Description: The request is rejected due to generic error
+             * condition in the NF.
+             */
             ogs_assert(true == ogs_sbi_server_send_error(
                     stream, OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                    recvmsg, "ogs_sbi_send_request_to_client() failed", NULL));
+                    recvmsg, "ogs_sbi_send_request_to_client() failed", NULL,
+                    "SYSTEM_FAILURE"));
             ogs_sbi_request_free(request);
             nrf_assoc_remove(assoc);
             goto cleanup;
@@ -1075,10 +1421,26 @@ static int discover_handler(
                 status == OGS_DONE ? OGS_LOG_DEBUG : OGS_LOG_WARN, 0,
                 "response_handler() failed [%d]", status);
 
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: SYSTEM_FAILURE
+         * HTTP status code: 500 Internal Server Error
+         * Description: The request is rejected due to generic error
+         * condition in the NF.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
                 OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR, NULL,
-                "response_handler() failed", NULL));
+                "response_handler() failed", NULL,
+                "SYSTEM_FAILURE"));
 
         nrf_assoc_remove(assoc);
 

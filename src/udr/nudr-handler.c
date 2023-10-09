@@ -48,27 +48,76 @@ bool udr_nudr_dr_handle_subscription_authentication(
     supi = recvmsg->h.resource.component[1];
     if (!supi) {
         ogs_error("No SUPI");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SUPI", NULL));
+                recvmsg, "No SUPI", NULL, "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (strncmp(supi,
             OGS_ID_SUPI_TYPE_IMSI, strlen(OGS_ID_SUPI_TYPE_IMSI)) != 0) {
         ogs_error("[%s] Unknown SUPI Type", supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
-            ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_FORBIDDEN,
-                recvmsg, "Unknwon SUPI Type", supi));
+            ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
+                recvmsg, "Unknwon SUPI Type", supi,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     rv = ogs_dbi_auth_info(supi, &auth_info);
     if (rv != OGS_OK) {
         ogs_warn("[%s] Cannot find SUPI in DB", supi);
+        /*
+         * TS29.504
+         * 6.1.6 Error Handling
+         *
+         * The "ProblemDetails" data structure may contain a "cause"
+         * attribute to indicate the application error, see
+         * 3GPP TS 29.571 [10]. The values for "cause" attribute
+         * are defined in table 6.1.6-2.
+         * Application Error: USER_NOT_FOUND
+         * HTTP status code: 404 Not Found
+         * Description: The user indicated in the HTTP/2 request
+         * does not exist in the UDR.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_NOT_FOUND,
-                recvmsg, "Cannot find SUPI Type", supi));
+                recvmsg, "Cannot find SUPI Type", supi, "USER_NOT_FOUND"));
         return false;
     }
 
@@ -125,10 +174,28 @@ bool udr_nudr_dr_handle_subscription_authentication(
 
             PatchItemList = recvmsg->PatchItemList;
             if (!PatchItemList) {
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No PatchItemList Array", NULL));
+                        recvmsg, "No PatchItemList Array", NULL,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
@@ -143,10 +210,29 @@ bool udr_nudr_dr_handle_subscription_authentication(
             }
 
             if (!sqn_string) {
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_INCORRECT
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * a variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method was received with a semantically incorrect
+                 * value. (NOTE 1) 
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No PatchItemList", NULL));
+                        recvmsg, "No PatchItemList", NULL,
+                        "MANDATORY_IE_INCORRECT"));
                 return false;
             }
 
@@ -157,20 +243,52 @@ bool udr_nudr_dr_handle_subscription_authentication(
             rv = ogs_dbi_update_sqn(supi, sqn);
             if (rv != OGS_OK) {
                 ogs_fatal("[%s] Cannot update SQN", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_NF_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to unspecified
+                 * reason at the NF. (NOTE 3)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                        recvmsg, "Cannot update SQN", supi));
+                        recvmsg, "Cannot update SQN", supi,
+                        "UNSPECIFIED_NF_FAILURE"));
                 return false;
             }
 
             rv = ogs_dbi_increment_sqn(supi);
             if (rv != OGS_OK) {
                 ogs_fatal("[%s] Cannot increment SQN", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_NF_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to unspecified
+                 * reason at the NF. (NOTE 3)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                        recvmsg, "Cannot increment SQN", supi));
+                        recvmsg, "Cannot increment SQN", supi,
+                        "UNSPECIFIED_NF_FAILURE"));
                 return false;
             }
 
@@ -187,8 +305,9 @@ bool udr_nudr_dr_handle_subscription_authentication(
             ogs_error("Invalid HTTP method [%s]", recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
-                    recvmsg, "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
+                    recvmsg, "Invalid HTTP method", recvmsg->h.method,
+                    NULL));
         END
         break;
 
@@ -202,10 +321,28 @@ bool udr_nudr_dr_handle_subscription_authentication(
             if (!AuthEvent &&
                 !strcmp(recvmsg->h.method, OGS_SBI_HTTP_METHOD_PUT)) {
                 ogs_error("[%s] No AuthEvent", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No AuthEvent", supi));
+                        recvmsg, "No AuthEvent", supi,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
@@ -213,10 +350,26 @@ bool udr_nudr_dr_handle_subscription_authentication(
             rv = ogs_dbi_increment_sqn(supi);
             if (rv != OGS_OK) {
                 ogs_fatal("[%s] Cannot increment SQN", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: UNSPECIFIED_NF_FAILURE
+                 * HTTP status code: 500 Internal Server Error
+                 * Description: The request is rejected due to unspecified
+                 * reason at the NF. (NOTE 3)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(stream,
                         OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR,
-                        recvmsg, "Cannot increment SQN", supi));
+                        recvmsg, "Cannot increment SQN", supi,
+                        "UNSPECIFIED_NF_FAILURE"));
                 return false;
             }
 
@@ -231,8 +384,9 @@ bool udr_nudr_dr_handle_subscription_authentication(
             ogs_error("Invalid HTTP method [%s]", recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
-                    recvmsg, "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
+                    recvmsg, "Invalid HTTP method", recvmsg->h.method,
+                    NULL));
         END
         break;
 
@@ -241,9 +395,9 @@ bool udr_nudr_dr_handle_subscription_authentication(
                 recvmsg->h.resource.component[3]);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
-                OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
+                OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
                 recvmsg, "Unknown resource name",
-                recvmsg->h.resource.component[3]));
+                recvmsg->h.resource.component[3], NULL));
     END
 
     return false;
@@ -263,18 +417,54 @@ bool udr_nudr_dr_handle_subscription_context(
     supi = recvmsg->h.resource.component[1];
     if (!supi) {
         ogs_error("No SUPI");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No SUPI", NULL));
+                recvmsg, "No SUPI", NULL, "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (strncmp(supi,
             OGS_ID_SUPI_TYPE_IMSI, strlen(OGS_ID_SUPI_TYPE_IMSI)) != 0) {
         ogs_error("[%s] Unknown SUPI Type", supi);
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_FORBIDDEN,
-                recvmsg, "Unknwon SUPI Type", supi));
+                recvmsg, "Unknwon SUPI Type", supi,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -287,10 +477,28 @@ bool udr_nudr_dr_handle_subscription_context(
             Amf3GppAccessRegistration = recvmsg->Amf3GppAccessRegistration;
             if (!Amf3GppAccessRegistration) {
                 ogs_error("[%s] No Amf3GppAccessRegistration", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No Amf3GppAccessRegistration", supi));
+                        recvmsg, "No Amf3GppAccessRegistration", supi,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
@@ -333,10 +541,28 @@ bool udr_nudr_dr_handle_subscription_context(
             PatchItemList = recvmsg->PatchItemList;
             if (!PatchItemList) {
                 ogs_error("[%s] No PatchItemList", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No PatchItemList", supi));
+                        recvmsg, "No PatchItemList", supi,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
@@ -355,8 +581,9 @@ bool udr_nudr_dr_handle_subscription_context(
             ogs_error("Invalid HTTP method [%s]", recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
-                    recvmsg, "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
+                    recvmsg, "Invalid HTTP method", recvmsg->h.method,
+                    NULL));
         END
         break;
     CASE(OGS_SBI_RESOURCE_NAME_SMF_REGISTRATIONS)
@@ -367,10 +594,28 @@ bool udr_nudr_dr_handle_subscription_context(
             SmfRegistration = recvmsg->SmfRegistration;
             if (!SmfRegistration) {
                 ogs_error("[%s] No SmfRegistration", supi);
+                /*
+                 * TS29.500
+                 * 5.2.7.2 NF as HTTP Server
+                 *
+                 * Protocol and application errors common to several 5GC SBI API
+                 * specifications for which the NF shall include in the HTTP
+                 * response a payload body ("ProblemDetails" data structure or
+                 * application specific error data structure) with the "cause"
+                 * attribute indicating corresponding error are listed in table
+                 * 5.2.7.2-1.
+                 * Protocol or application Error: MANDATORY_IE_MISSING
+                 * HTTP status code: 400 Bad Request
+                 * Description: A mandatory IE (within the JSON body or within
+                 * the variable part of an "apiSpecificResourceUriPart" or within
+                 * an HTTP header), or conditional IE but mandatory required,
+                 * for an HTTP method is not included in the request. (NOTE 1)
+                 */
                 ogs_assert(true ==
                     ogs_sbi_server_send_error(
                         stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                        recvmsg, "No SmfRegistration", supi));
+                        recvmsg, "No SmfRegistration", supi,
+                        "MANDATORY_IE_MISSING"));
                 return false;
             }
 
@@ -397,8 +642,9 @@ bool udr_nudr_dr_handle_subscription_context(
             ogs_error("Invalid HTTP method [%s]", recvmsg->h.method);
             ogs_assert(true ==
                 ogs_sbi_server_send_error(stream,
-                    OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
-                    recvmsg, "Invalid HTTP method", recvmsg->h.method));
+                    OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
+                    recvmsg, "Invalid HTTP method", recvmsg->h.method,
+                    NULL));
         END
         break;
 
@@ -407,9 +653,9 @@ bool udr_nudr_dr_handle_subscription_context(
                 recvmsg->h.resource.component[3]);
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream,
-                OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED,
+                OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED,
                 recvmsg, "Unknown resource name",
-                recvmsg->h.resource.component[3]));
+                recvmsg->h.resource.component[3], NULL));
     END
 
     return false;
@@ -1029,7 +1275,7 @@ bool udr_nudr_dr_handle_subscription_provisioned(
     DEFAULT
         strerror = ogs_msprintf("Invalid resource name [%s]",
                 recvmsg->h.resource.component[3]);
-        status = OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED;
+        status = OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED;
         goto cleanup;
     END
 
@@ -1041,8 +1287,24 @@ cleanup:
     ogs_assert(strerror);
     ogs_assert(status);
     ogs_error("%s", strerror);
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+     * HTTP status code: 400 Bad Request
+     * Description: The request is rejected due to unspecified
+     * client error. (NOTE 2) 
+     */
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                "UNSPECIFIED_MSG_FAILURE"));
     ogs_free(strerror);
 
     ogs_subscription_data_free(&subscription_data);
@@ -1263,7 +1525,7 @@ bool udr_nudr_dr_handle_policy_data(
             DEFAULT
                 strerror = ogs_msprintf("Invalid resource name [%s]",
                         recvmsg->h.resource.component[3]);
-                status = OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED;
+                status = OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED;
                 goto cleanup;
             END
 
@@ -1272,7 +1534,7 @@ bool udr_nudr_dr_handle_policy_data(
         DEFAULT
             strerror = ogs_msprintf("Invalid HTTP method [%s]",
                     recvmsg->h.method);
-            status = OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED;
+            status = OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED;
             goto cleanup;
         END
 
@@ -1281,7 +1543,7 @@ bool udr_nudr_dr_handle_policy_data(
     DEFAULT
         strerror = ogs_msprintf("Invalid resource name [%s]",
                 recvmsg->h.resource.component[1]);
-        status = OGS_SBI_HTTP_STATUS_MEHTOD_NOT_ALLOWED;
+        status = OGS_SBI_HTTP_STATUS_METHOD_NOT_ALLOWED;
         goto cleanup;
     END
 
@@ -1293,8 +1555,29 @@ cleanup:
     ogs_assert(strerror);
     ogs_assert(status);
     ogs_error("%s", strerror);
-    ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+    if (status == OGS_SBI_HTTP_STATUS_BAD_REQUEST)
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: UNSPECIFIED_MSG_FAILURE
+         * HTTP status code: 400 Bad Request
+         * Description: The request is rejected due to unspecified
+         * client error. (NOTE 2) 
+         */
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(stream, status, recvmsg, strerror,
+                    NULL, "UNSPECIFIED_MSG_FAILURE"));
+    else
+        ogs_assert(true ==
+            ogs_sbi_server_send_error(stream, status, recvmsg, strerror,
+                    NULL, NULL));
     ogs_free(strerror);
 
     ogs_subscription_data_free(&subscription_data);

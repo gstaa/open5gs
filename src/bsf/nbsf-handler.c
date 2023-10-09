@@ -302,8 +302,26 @@ cleanup:
     ogs_assert(strerror);
     ogs_assert(status);
     ogs_error("%s", strerror);
+    /*
+     * TS29.500
+     * 5.2.7.2 NF as HTTP Server
+     *
+     * Protocol and application errors common to several 5GC SBI API
+     * specifications for which the NF shall include in the HTTP
+     * response a payload body ("ProblemDetails" data structure or
+     * application specific error data structure) with the "cause"
+     * attribute indicating corresponding error are listed in table
+     * 5.2.7.2-1.
+     * Protocol or application Error: MANDATORY_IE_MISSING
+     * HTTP status code: 400 Bad Request
+     * Description: A mandatory IE (within the JSON body or within
+     * the variable part of an "apiSpecificResourceUriPart" or within
+     * an HTTP header), or conditional IE but mandatory required,
+     * for an HTTP method is not included in the request. (NOTE 1)
+     */
     ogs_assert(true ==
-        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL));
+        ogs_sbi_server_send_error(stream, status, recvmsg, strerror, NULL,
+                "MANDATORY_IE_MISSING"));
     ogs_free(strerror);
 
     return false;

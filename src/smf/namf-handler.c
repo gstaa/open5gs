@@ -196,25 +196,80 @@ bool smf_namf_comm_handle_n1_n2_message_transfer_failure_notify(
     N1N2MsgTxfrFailureNotification = recvmsg->N1N2MsgTxfrFailureNotification;
     if (!N1N2MsgTxfrFailureNotification) {
         ogs_error("No N1N2MsgTxfrFailureNotification");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_MISSING
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * the variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method is not included in the request. (NOTE 1)
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No N1N2MsgTxfrFailureNotification", NULL));
+                recvmsg, "No N1N2MsgTxfrFailureNotification", NULL,
+                "MANDATORY_IE_MISSING"));
         return false;
     }
 
     if (!N1N2MsgTxfrFailureNotification->cause) {
         ogs_error("No Cause");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No Cause", NULL));
+                recvmsg, "No Cause", NULL, "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
     if (!N1N2MsgTxfrFailureNotification->n1n2_msg_data_uri) {
         ogs_error("No n1n2MsgDataUri");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error: MANDATORY_IE_INCORRECT
+         * HTTP status code: 400 Bad Request
+         * Description: A mandatory IE (within the JSON body or within
+         * a variable part of an "apiSpecificResourceUriPart" or within
+         * an HTTP header), or conditional IE but mandatory required,
+         * for an HTTP method was received with a semantically incorrect
+         * value. (NOTE 1) 
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_BAD_REQUEST,
-                recvmsg, "No n1n2MsgDataUri", NULL));
+                recvmsg, "No n1n2MsgDataUri", NULL,
+                "MANDATORY_IE_INCORRECT"));
         return false;
     }
 
@@ -222,10 +277,27 @@ bool smf_namf_comm_handle_n1_n2_message_transfer_failure_notify(
         N1N2MsgTxfrFailureNotification->n1n2_msg_data_uri);
     if (!sess) {
         ogs_error("Not found");
+        /*
+         * TS29.500
+         * 5.2.7.2 NF as HTTP Server
+         *
+         * Protocol and application errors common to several 5GC SBI API
+         * specifications for which the NF shall include in the HTTP
+         * response a payload body ("ProblemDetails" data structure or
+         * application specific error data structure) with the "cause"
+         * attribute indicating corresponding error are listed in table
+         * 5.2.7.2-1.
+         * Protocol or application Error:RESOURCE_URI_STRUCTURE_NOT_FOUND
+         * HTTP status code: 404 Not Found
+         * Description: The request is rejected because a fixed part
+         * after the first variable part of an
+         * "apiSpecificResourceUriPart" (as defined in clause 4.4.1 of
+         * TS 29.501) is not found in the NF.
+         */
         ogs_assert(true ==
             ogs_sbi_server_send_error(stream, OGS_SBI_HTTP_STATUS_NOT_FOUND,
                 recvmsg, N1N2MsgTxfrFailureNotification->n1n2_msg_data_uri,
-                NULL));
+                NULL, "RESOURCE_URI_STRUCTURE_NOT_FOUND"));
         return false;
     }
 
